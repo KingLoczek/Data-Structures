@@ -1,7 +1,7 @@
 # Data Structures
 This project contains implementations of several popular data structures in the C++ programming language.
 
-## Instrukcje Użycia
+## Instruction
 - Clone this project to your local computer.
 - Run the code in your development environment.
 - You can also customize implementations or use them in your projects.
