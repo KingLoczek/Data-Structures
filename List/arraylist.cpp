@@ -2,13 +2,16 @@
 #include "arraylist.h"
 #endif
 
+#include <memory>
+#include <cassert>
+
 template <class T>
 void ArrayList<T>::resize()
 {
     // Resize the array to accomodate more data
     // New temp array
     T *temp = new T[arrLenght * 2];
-    for(int i=0; i<arrLenght; i++)
+    for(size_t i=0; i<listSize; i++) // list only contains listSize elements to copy over
         temp[i]=data[i];
     delete[] data; // Free the memory allocated to the old array
     data = temp;
@@ -35,32 +38,49 @@ void ArrayList<T>::add(T item)
 }
 
 template <class T>
-void ArrayList<T>::add(int index, T item)
+void ArrayList<T>::add(size_t index, T item)
 {
+    assert(index < listSize && "Out of bounds!");
     // Add the item at the specified index,
     // shifting other elements down
 
     if(needToResize()) resize();
     // Shift elements to the right to make space for the new item
-    for (int i = listSize - 1; i >= index; i--)
+    for (size_t i = listSize - 1; i > index; i--)
         data[i + 1] = data[i];
+    data[index + 1] = data[index];
 
     data[index] = item;
     listSize ++;
 }
 
+template<class T>
+void ArrayList<T>::push(T item) {
+    add(0, std::move(item));
+}
+
 template <class T>
-void ArrayList<T>::remove(int index)
+T ArrayList<T>::remove(size_t index)
 {   
+    assert(index < listSize && "Out of bounds");
     // Remove the item at the specified index
 
-    if(index >= 0 && index <= listSize)
-    {   
-        // Shift elements to the left to fill the gap
-        for (int i = index; i < listSize; i++)
-            data[i] = data[i+1];
-    }
+    T removed(std::move(data[index]));
+    // Shift elements to the left to fill the gap
+    for (size_t i = index; i < listSize; i++)
+        data[i] = data[i+1];
     listSize --;   
+    return removed;
+}
+
+template<class T>
+T ArrayList<T>::remove() {
+    return remove(listSize - 1);
+}
+
+template<class T>
+T ArrayList<T>::pop() {
+    return remove(0);
 }
 
 template <class T>
@@ -72,6 +92,12 @@ T* ArrayList<T>::get(int index)
     return nullptr;
 }
 
+template<class T>
+T& ArrayList<T>::get(size_t index) {
+    assert(index < listSize && "Out of bounds");
+    return data[index];
+}
+
 template <class T>
 void ArrayList<T>::set(int index, T item)
 {
@@ -81,7 +107,7 @@ void ArrayList<T>::set(int index, T item)
 }
 
 template <class T>
-int ArrayList<T>::indexOf(T item)
+int ArrayList<T>::indexOf(const T& item)
 {
     // Find the index of the first occurrence of the item
     for (int i = 0; i < listSize; i++)
@@ -105,14 +131,14 @@ int ArrayList<T>::lastIndexOf(T item)
 }
 
 template <class T>
-bool ArrayList<T>::contains(T item)
+bool ArrayList<T>::contains(const T& item)
 {
     // Check if the list contains the specified item
     return(indexOf(item) > -1);
 }
 
 template <class T>
-int ArrayList<T>::size()
+size_t ArrayList<T>::size()
 {
     // Return the number of elements in the list
     return listSize;

@@ -1,8 +1,10 @@
 #ifndef ARRAYLIST_H
 #define ARRAYLIST_H
 
+#include "IList.h"
+
 template <class T>
-class ArrayList{
+class ArrayList : public IList<T> {
     private:
         T *data;
         int arrLenght; //lenght of the actual array
@@ -18,16 +20,20 @@ class ArrayList{
             listSize = 0;
         }
         
-        bool contains(T item); //looks if array contains an item of type T
-        int indexOf(T item); //index of array item
+        virtual bool contains(const T& item) override; //looks if array contains an item of type T
+        int indexOf(const T& item); //index of array item
         int lastIndexOf(T item); //last index of array item
         T *get(int index); //return a type T and get whatever's in the index position
-        int size();
+        virtual T& get(size_t index) override;
+        virtual size_t size() override;
 
-        void add(T item); //add an item to the end of the list
-        void add(int index, T item); //add an item in particular index in list
+        virtual void add(T item) override; //add an item to the end of the list
+        virtual void add(size_t index, T item) override; //add an item in particular index in list
+        virtual void push(T item) override;
         void set(int index, T item); //change the spot at index to the item
-        void remove(int index); //remove at a particular spot
+        virtual T remove(size_t index) override; //remove at a particular spot
+        virtual T remove() override;
+        virtual T pop() override;
         // void remove(T item); //search through and find the first occurrence of an item
         
         ~ArrayList(){
