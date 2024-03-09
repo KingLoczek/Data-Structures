@@ -2,7 +2,8 @@
     "files.associations": {
         "*.tcc": "cpp",
         "iostream": "cpp",
-        "chrono": "cpp"
+        "chrono": "cpp",
+        "ostream": "cpp"
     },
     "C_Cpp.dimInactiveRegions": false
 }

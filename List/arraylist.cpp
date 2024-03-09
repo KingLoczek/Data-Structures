@@ -42,8 +42,8 @@ void ArrayList<T>::add(int index, T item)
 
     if(needToResize()) resize();
     // Shift elements to the right to make space for the new item
-    for (int i = 0; i < listSize; i--)
-        data[listSize+1] = data[listSize];
+    for (int i = listSize - 1; i >= index; i--)
+        data[i + 1] = data[i];
 
     data[index] = item;
     listSize ++;

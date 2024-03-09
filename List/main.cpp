@@ -13,6 +13,7 @@ int main(){
     myList.add(5);
     myList.add(10);
     myList.add(15);
+    myList.add(0,2);
 
     // Printing the size of the list
     cout << "Size of the list: " << myList.size() << endl;
