@@ -1,44 +1,83 @@
+#include <cstdio>
 #include <iostream>
+#include "DoublyLinkedList.h"
 #include "arraylist.h"
 #include <stdlib.h>
 #include <time.h>
+#include <string.h>
+#include <string>
 
 using namespace std;
 
-int main(){
+int main() {
+    int sel;
+    std::cout << "Choose IList implementation:\n   0. ArrayList\n   3. DoublyLinkedList\n      > ";
+    std::cin >> sel;
 
-    ArrayList<int> myList;
+    IList<int>* list;
 
-    // Adding elements to the list
-    myList.add(5);
-    myList.add(10);
-    myList.add(15);
-    myList.add(0,2);
-
-    // Printing the size of the list
-    cout << "Size of the list: " << myList.size() << endl;
-
-    // Checking if the list contains a certain element
-    cout << "Does the list contain 10? " << (myList.contains(10) ? "Yes" : "No") << endl;
-
-    // Adding elements to the list
-    for (int i = 0; i < 20; ++i) {
-        myList.add(i * 10);
-        std::cout << "Size of the list after adding element " << i+1 << ": " << myList.size() << std::endl;
+    switch (sel) {
+        case 0:
+            list = new ArrayList<int>();
+            break;
+        case 3:
+            list = new DoublyLinkedList<int>();
+            break;
+        default:
+            std::cout << "FATAL: Non existing IList implementation chosen " << sel << '\n';
+            return 1;
     }
 
-    // Printing the elements of the list
-    std::cout << "Elements of the list:" << std::endl;
-    for (int i = 0; i < myList.size(); i++) {
-        std::cout << *(myList.get(i)) << " ";
+    string in;
+    while (true) {
+        std::cout << " > ";
+        std::cin >> in;
+        std::cout << "   ";
+
+        if (in == "get") {
+            size_t index;
+            std::cin >> index;
+            std::cout << list->get(index) << '\n';
+        } else if (in == "add") {
+            int item;
+            std::cin >> item;
+            list->add(item);
+            std::cout << '\n';
+        } else if (in == "addi") {
+            size_t index;
+            int item;
+            std::cin >> index >> item;
+            list->add(index, item);
+            std::cout << '\n';
+        } else if (in == "push") {
+            int item;
+            std::cin >> item;
+            list->push(item);
+            std::cout << '\n';
+        } else if (in == "remove") {
+            std::cout << list->remove() << '\n';
+        } else if (in == "removei") {
+            size_t index;
+            std::cin >> index;
+            std::cout << list->remove(index) << '\n';
+        } else if (in == "pop") {
+            std::cout << list->pop() << '\n';
+        } else if (in == "view") {
+            for (size_t i = 0, size = list->size(); i < size; i++) {
+                std::cout << list->get(i) << ' ';
+            }
+            std::cout << '\n';
+        } else if (in == "size") {
+            std::cout << list->size() << '\n';
+        } else if (in == "quit" || in == "q") {
+            std::cout << "exit.\n";
+            break;
+        } else {
+            std::cout << "ERROR: unknown command `" << in << "`\n";
+        }
     }
-    std::cout << std::endl;
 
-    // Removing the element at index 2
-    myList.remove(2);
-
-    // Printing the updated size of the list
-    std::cout << "Size of the list after removal: " << myList.size() << std::endl;
+    delete list;
 
     return 0;
 }
