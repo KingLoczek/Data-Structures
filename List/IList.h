@@ -62,7 +62,6 @@ class IList {
          * Returns the size of the list
          */
         virtual size_t size() = 0;
-
 };
 
 #endif

@@ -1,6 +1,8 @@
 #include <cstdio>
 #include <iostream>
 #include "DoublyLinkedList.h"
+#include "SinglyLinkedHead.h"
+#include "SinglyLinkedList.h"
 #include "arraylist.h"
 #include <stdlib.h>
 #include <time.h>
@@ -11,7 +13,7 @@ using namespace std;
 
 int main() {
     int sel;
-    std::cout << "Choose IList implementation:\n   0. ArrayList\n   3. DoublyLinkedList\n      > ";
+    std::cout << "Choose IList implementation:\n   0. ArrayList\n 1. SinglyListedList (only head)\n 2.SinglyListedList\n 3. DoublyLinkedList\n      > ";
     std::cin >> sel;
 
     IList<int>* list;
@@ -19,6 +21,12 @@ int main() {
     switch (sel) {
         case 0:
             list = new ArrayList<int>();
+            break;
+        case 1:
+            list = new SinglyLinkedHead<int>();
+            break;
+        case 2:
+            list = new SinglyLinkedList<int>();
             break;
         case 3:
             list = new DoublyLinkedList<int>();
@@ -30,6 +38,7 @@ int main() {
 
     string in;
     while (true) {
+        std::cout << "Tell us what you want to do: (get,add,addi,push,remove,removei,view,size,quit)";
         std::cout << " > ";
         std::cin >> in;
         std::cout << "   ";
