@@ -57,6 +57,9 @@ class DoublyLinkedList : public IList<T> {
                 next = next->next;
                 delete canned;
             }
+
+            mHead = nullptr;
+            mTail = nullptr;
         }
 
         virtual T& get(size_t index) override {
@@ -75,7 +78,7 @@ class DoublyLinkedList : public IList<T> {
         virtual void add(size_t index, T element) override {
             Node* existing = findNode(index);
             Node* prev = existing->prev;
-            Node* node = new Node(std::move(element), prev, existing);
+            Node* node = new Node(std::move(element), existing, prev);
             prev->next = node;
             existing->prev = node;
             mLength += 1;
