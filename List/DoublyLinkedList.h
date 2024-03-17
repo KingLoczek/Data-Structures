@@ -79,8 +79,9 @@ class DoublyLinkedList : public IList<T> {
             Node* existing = findNode(index);
             Node* prev = existing->prev;
             Node* node = new Node(std::move(element), existing, prev);
-            prev->next = node;
-            existing->prev = node;
+            if (prev) prev->next = node;
+            if (existing) existing->prev = node;
+            if (existing == mHead) mHead = node;
             mLength += 1;
         }
 
@@ -91,6 +92,12 @@ class DoublyLinkedList : public IList<T> {
             if (mHead) mHead->prev = node;
             mHead = node;
             mLength += 1;
+        }
+
+        virtual void addAll(size_t len, T* arr) override {
+            for (size_t i = 0; i < len; i++) {
+                push(std::move(arr[i]));
+            }
         }
 
         virtual T remove() override {

@@ -30,6 +30,7 @@ class ArrayList : public IList<T> {
         virtual void add(T item) override; //add an item to the end of the list
         virtual void add(size_t index, T item) override; //add an item in particular index in list
         virtual void push(T item) override;
+        virtual void addAll(size_t len, T* arr) override;
         void set(int index, T item); //change the spot at index to the item
         virtual T remove(size_t index) override; //remove at a particular spot
         virtual T remove() override;

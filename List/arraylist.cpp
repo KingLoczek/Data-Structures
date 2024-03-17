@@ -55,8 +55,21 @@ void ArrayList<T>::add(size_t index, T item)
 }
 
 template<class T>
+void ArrayList<T>::addAll(size_t len, T* arr) {
+    for (size_t i = len - 1; i > 0; i--) {
+        add(std::move(arr[i]));
+    }
+    if (len > 0) add(std::move(arr[0]));
+}
+
+template<class T>
 void ArrayList<T>::push(T item) {
-    add(0, std::move(item));
+    if(needToResize()) resize();
+
+    for (size_t i = listSize; i > 0; i--)
+        data[i] = data[i - 1];
+    data[0] = item;
+    listSize++;
 }
 
 template <class T>

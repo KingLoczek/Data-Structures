@@ -35,6 +35,12 @@ class IList {
         virtual void add(size_t index, T element) = 0;
 
         /**
+         * Adds all element from arr into the list
+         * arr must have at least len elements
+         */
+        virtual void addAll(size_t len, T* arr) = 0;
+
+        /**
          * Removes an element from the end of the list
          * Fails if the list is empty
          */

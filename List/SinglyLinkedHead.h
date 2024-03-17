@@ -1,6 +1,8 @@
 #ifndef SINGLYLINKEDHEAD_H
 #define SINGLYLINKEDHEAD_H
+
 #include "IList.h"
+#include <memory>
 
 template<typename T>
 class SinglyLinkedHead : public IList<T> {
@@ -67,6 +69,12 @@ public:
             newNode->next = current->next;
             current->next = newNode;
             listSize++;
+        }
+    }
+
+    virtual void addAll(size_t len, T* arr) override {
+        for (size_t i = 0; i < len; i++) {
+            push(std::move(arr[i]));
         }
     }
 
