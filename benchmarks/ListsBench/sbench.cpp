@@ -22,58 +22,33 @@ using ItemT = int;
 using TimeT = std::chrono::nanoseconds;
 using InstantT = std::chrono::high_resolution_clock::time_point;
 
-inline InstantT start() {
+InstantT start() {
     return std::chrono::high_resolution_clock::now();
 }
 
-inline TimeT end(const InstantT& start) {
+TimeT end(const InstantT& start) {
     auto end = std::chrono::high_resolution_clock::now();
     TimeT duration = std::chrono::duration_cast<TimeT>(end - start);
     return duration;
 }
 
-
-template<typename T>
-T* makeLinkedLists(size_t len, int N) {
-    T* lists = new T[len];
-    std::mt19937 gen;
+int* makeDataSet(size_t N, int seed) {
+    std::mt19937 gen(seed);
     std::uniform_int_distribution<> dist(0, 0xFFFFFFF);
 
-    for (int i = 0; i < N; i++) {
-        int item = dist(gen);
-
-        for (size_t j = 0; j < len; j++) {
-            lists[j].push(item);
-        }
+    int* items = new int[N];
+    for (size_t i = 0; i < N; i++) {
+        items[i] = dist(gen);
     }
-}
-
-template<typename T>
-T* makeArrayLists(size_t len, int N) {
-    T* lists = new T[len];
-    std::mt19937 gen;
-    std::uniform_int_distribution<> dist(0, 0xFFFFFFF);
-
-    for (int i = 0; i < N; i++) {
-        int item = dist(gen);
-
-        for (size_t j = 0; j < len; j++) {
-            lists[j].add(item);
-        }
-    }
+    
+    return items;
 }
 
 template<typename T>
 T* makeLists(size_t len, int N) {
     T* lists = new T[len];
-    std::mt19937 gen;
-    std::uniform_int_distribution<> dist(0, 0xFFFFFFF);
 
-    int* items = new int[N];
-    for (int i = 0; i < N; i++) {
-        items[i] = dist(gen);
-    }
-
+    int* items = makeDataSet(static_cast<size_t>(N), N);
     for (size_t j = 0; j < len; j++) {
         lists[j].addAll(static_cast<size_t>(N), items);
     }
@@ -123,20 +98,30 @@ void benchAdd(int N, size_t m, TimeT& timer) {
 }
 
 template<typename F>
+void run(const char* tag, const char* name, int N, size_t reps, size_t m, F bench) {
+    TimeT acc{0};
+
+    for (size_t i = 0; i < reps; i++) {
+        bench(N, m, acc);
+    }
+
+    std::cout << tag << "," << name << "," << N << "," << m << "," << reps << "," << acc.count() << '\n';
+}
+
+template<typename F>
 void runner(const char* tag, const char* name, const std::vector<int>& Ns, size_t reps, size_t m, F bench) {
     for (int n : Ns) {
-        TimeT acc{0};
-
-        for (size_t i = 0; i < reps; i++) {
-            bench(n, m, acc);
-        }
-
-        std::cout << tag << "," << name << "," << n << "," << m << "," << reps << "," << acc.count() << '\n';
+        run(tag, name, n, reps, m, bench);
     }
 }
 
 int main(int argc, char **argv) {
-    std::vector<int> ns{ 4000, 8000, 10000, 16000, 20000, 40000, 60000, 100000 };
+    //std::vector<int> ns{ 4000, 8000, 10000, 16000, 20000, 40000, 60000, 100000 };
+    std::vector<int> ns;
+    for (int i = 1; i <= 20; i++) {
+        int n = i * 5000;
+        ns.push_back(n);
+    }
     std::cout << "struct,bench,N,no_instances,reps,total_time_ns\n";
 
     if (true) {
