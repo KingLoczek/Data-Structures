@@ -3,6 +3,7 @@
 #include "SinglyLinkedList.h"
 #include "arraylist.h"
 #include <chrono>
+#include <cstddef>
 #include <ostream>
 #include <ratio>
 #include <vector>
@@ -44,6 +45,18 @@ int* makeDataSet(size_t N, int seed) {
     return items;
 }
 
+int* makeDataSet(size_t N) {
+    std::mt19937 gen;
+    std::uniform_int_distribution<> dist(0, 0xFFFFFFF);
+
+    int* items = new int[N];
+    for (size_t i = 0; i < N; i++) {
+        items[i] = dist(gen);
+    }
+    
+    return items;
+}
+
 template<typename T>
 T* makeLists(size_t len, int N) {
     T* lists = new T[len];
@@ -58,8 +71,20 @@ T* makeLists(size_t len, int N) {
 }
 
 template<typename T>
-void benchAddBegin(int N, size_t m, TimeT& timer) {
-    T* lists = makeLists<T>(m, N);
+T* fillLists(size_t nData, int* data, size_t len) {
+    T* lists = new T[len];
+
+    for (size_t i = 0; i < len; i++) {
+        lists[i].addAll(nData, data);
+    }
+
+    return lists;
+}
+
+template<typename T>
+void benchAddBegin(size_t N, size_t m, int* data, TimeT& timer) {
+    T* lists = fillLists<T>(N, data, m);
+
     auto begin = start();
     for (size_t i = 0; i < m; i++) {
         lists[i].push(2137);
@@ -72,8 +97,8 @@ void benchAddBegin(int N, size_t m, TimeT& timer) {
 }
 
 template<typename T>
-void benchAddEnd(int N, size_t m, TimeT& timer) {
-    T* lists = makeLists<T>(m, N);
+void benchAddEnd(int N, size_t m, int* data, TimeT& timer) {
+    T* lists = fillLists<T>(N, data, m);
     auto begin = start();
     for (size_t i = 0; i < m; i++) {
         lists[i].add(69420);
@@ -85,8 +110,8 @@ void benchAddEnd(int N, size_t m, TimeT& timer) {
 }
 
 template<typename T>
-void benchAdd(int N, size_t m, TimeT& timer) {
-    T* lists = makeLists<T>(m, N);
+void benchAdd(int N, size_t m, int* data, TimeT& timer) {
+    T* lists = fillLists<T>(N, data, m);
     auto begin = start();
     for (size_t i = 0; i < m; i++) {
         lists[i].add(1337, N / 2);
@@ -102,7 +127,27 @@ void run(const char* tag, const char* name, int N, size_t reps, size_t m, F benc
     TimeT acc{0};
 
     for (size_t i = 0; i < reps; i++) {
-        bench(N, m, acc);
+        int* data = makeDataSet(static_cast<size_t>(N), N + i);
+        bench(N, m, data, acc);
+    }
+
+    std::cout << tag << "," << name << "," << N << "," << m << "," << reps << "," << acc.count() << '\n';
+}
+
+template<typename F>
+void warmup(const char* tag, const char* name, size_t N, size_t reps, size_t m, int* data, F bench) {
+    TimeT acc{0};
+    for (size_t i = 0; i < reps; i++) {
+        bench(N, m, data, acc);
+    }
+}
+
+template<typename F>
+void run(const char* tag, const char* name, size_t N, size_t reps, size_t m, int* data, F bench) {
+    TimeT acc{0};
+
+    for (size_t i = 0; i < reps; i++) {
+        bench(N, m, data, acc);
     }
 
     std::cout << tag << "," << name << "," << N << "," << m << "," << reps << "," << acc.count() << '\n';
@@ -124,28 +169,56 @@ int main(int argc, char **argv) {
     }
     std::cout << "struct,bench,N,no_instances,reps,total_time_ns\n";
 
-    if (true) {
-        runner(       "ArrayList", "AddBegin", ns, 10, 100, benchAddBegin<ArrayList<ItemT>>);
-        runner("SinglyLinkedHead", "AddBegin", ns, 10, 100, benchAddBegin<SinglyLinkedHead<ItemT>>);
-        runner("SinglyLinkedList", "AddBegin", ns, 10, 100, benchAddBegin<SinglyLinkedList<ItemT>>);
-        runner("DoublyLinkedList", "AddBegin", ns, 10, 100, benchAddBegin<DoublyLinkedList<ItemT>>);
-        std::cout << std::flush;
+    const size_t WARMUPS = 2;
+    const size_t RUNS = 4;
+    const size_t STRUCTS = 100;
+    const size_t EPOCHS = 1;
+    const size_t A0 = 5000;
+    const size_t A19 = 20 * A0;
+
+    for (size_t N = A0; N <= A19; N += A0) {
+        for (size_t i = 0; i < EPOCHS; i++) {
+            int* set = makeDataSet(N);
+
+            warmup(       "ArrayList", "AddBegin", N, WARMUPS, STRUCTS, set, benchAddBegin<ArrayList<int>>);
+            run(          "ArrayList", "AddBegin", N,    RUNS, STRUCTS, set, benchAddBegin<ArrayList<int>>);
+            warmup("SinglyLinkedHead", "AddBegin", N, WARMUPS, STRUCTS, set, benchAddBegin<SinglyLinkedHead<int>>);
+            run(   "SinglyLinkedHead", "AddBegin", N,    RUNS, STRUCTS, set, benchAddBegin<SinglyLinkedHead<int>>);
+            warmup("SinglyLinkedList", "AddBegin", N, WARMUPS, STRUCTS, set, benchAddBegin<SinglyLinkedList<int>>);
+            run(   "SinglyLinkedList", "AddBegin", N,    RUNS, STRUCTS, set, benchAddBegin<SinglyLinkedList<int>>);
+            warmup("DoublyLinkedList", "AddBegin", N, WARMUPS, STRUCTS, set, benchAddBegin<DoublyLinkedList<int>>);
+            run(   "DoublyLinkedList", "AddBegin", N,    RUNS, STRUCTS, set, benchAddBegin<DoublyLinkedList<int>>);
+        }
     }
 
-    if (true) {
-        runner(       "ArrayList", "AddEnd", ns, 10, 100, benchAddEnd<ArrayList<ItemT>>);
-        runner("SinglyLinkedHead", "AddEnd", ns, 10, 100, benchAddEnd<SinglyLinkedHead<ItemT>>);
-        runner("SinglyLinkedList", "AddEnd", ns, 10, 100, benchAddEnd<SinglyLinkedList<ItemT>>);
-        runner("DoublyLinkedList", "AddEnd", ns, 10, 100, benchAddEnd<DoublyLinkedList<ItemT>>);
-        std::cout << std::flush;
+    for (size_t N = A0; N <= A19; N += A0) {
+        for (size_t i = 0; i < EPOCHS; i++) {
+            int* set = makeDataSet(N);
+
+            warmup(       "ArrayList", "AddEnd", N,  WARMUPS, STRUCTS, set, benchAddEnd<ArrayList<int>>);
+            run(          "ArrayList", "AddEnd", N,     RUNS, STRUCTS, set, benchAddEnd<ArrayList<int>>);
+            warmup("SinglyLinkedHead", "AddEnd", N,  WARMUPS, STRUCTS, set, benchAddEnd<SinglyLinkedHead<int>>);
+            run(   "SinglyLinkedHead", "AddEnd", N,     RUNS, STRUCTS, set, benchAddEnd<SinglyLinkedHead<int>>);
+            warmup("SinglyLinkedList", "AddEnd", N,  WARMUPS, STRUCTS, set, benchAddEnd<SinglyLinkedList<int>>);
+            run(   "SinglyLinkedList", "AddEnd", N,     RUNS, STRUCTS, set, benchAddEnd<SinglyLinkedList<int>>);
+            warmup("DoublyLinkedList", "AddEnd", N,  WARMUPS, STRUCTS, set, benchAddEnd<DoublyLinkedList<int>>);
+            run(   "DoublyLinkedList", "AddEnd", N,     RUNS, STRUCTS, set, benchAddEnd<DoublyLinkedList<int>>);
+        }
     }
 
-    if (true) {
-        runner(       "ArrayList", "Add", ns, 10, 100, benchAdd<ArrayList<ItemT>>);
-        runner("SinglyLinkedHead", "Add", ns, 10, 100, benchAdd<SinglyLinkedHead<ItemT>>);
-        runner("SinglyLinkedList", "Add", ns, 10, 100, benchAdd<SinglyLinkedList<ItemT>>);
-        runner("DoublyLinkedList", "Add", ns, 10, 100, benchAdd<DoublyLinkedList<ItemT>>);
-        std::cout << std::flush;
+    for (size_t N = A0; N <= A19; N += A0) {
+        for (size_t i = 0; i < EPOCHS; i++) {
+            int* set = makeDataSet(N);
+
+            warmup(       "ArrayList", "Add", N,  WARMUPS, STRUCTS, set, benchAdd<ArrayList<int>>);
+            run(          "ArrayList", "Add", N,     RUNS, STRUCTS, set, benchAdd<ArrayList<int>>);
+            warmup("SinglyLinkedHead", "Add", N,  WARMUPS, STRUCTS, set, benchAdd<SinglyLinkedHead<int>>);
+            run(   "SinglyLinkedHead", "Add", N,     RUNS, STRUCTS, set, benchAdd<SinglyLinkedHead<int>>);
+            warmup("SinglyLinkedList", "Add", N,  WARMUPS, STRUCTS, set, benchAdd<SinglyLinkedList<int>>);
+            run(   "SinglyLinkedList", "Add", N,     RUNS, STRUCTS, set, benchAdd<SinglyLinkedList<int>>);
+            warmup("DoublyLinkedList", "Add", N,  WARMUPS, STRUCTS, set, benchAdd<DoublyLinkedList<int>>);
+            run(   "DoublyLinkedList", "Add", N,     RUNS, STRUCTS, set, benchAdd<DoublyLinkedList<int>>);
+        }
     }
 
     return 0;
