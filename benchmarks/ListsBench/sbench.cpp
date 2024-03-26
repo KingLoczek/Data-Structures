@@ -114,7 +114,7 @@ void benchAdd(int N, size_t m, int* data, TimeT& timer) {
     T* lists = fillLists<T>(N, data, m);
     auto begin = start();
     for (size_t i = 0; i < m; i++) {
-        lists[i].add(1337, N / 2);
+        lists[i].add(N / 2, 1337);
     }
     timer += end(begin);
 
@@ -195,14 +195,14 @@ int main(int argc, char **argv) {
         for (size_t i = 0; i < EPOCHS; i++) {
             int* set = makeDataSet(N);
 
-            warmup(       "ArrayList", "AddEnd", N,  WARMUPS, STRUCTS, set, benchAddEnd<ArrayList<int>>);
-            run(          "ArrayList", "AddEnd", N,     RUNS, STRUCTS, set, benchAddEnd<ArrayList<int>>);
-            warmup("SinglyLinkedHead", "AddEnd", N,  WARMUPS, STRUCTS, set, benchAddEnd<SinglyLinkedHead<int>>);
-            run(   "SinglyLinkedHead", "AddEnd", N,     RUNS, STRUCTS, set, benchAddEnd<SinglyLinkedHead<int>>);
-            warmup("SinglyLinkedList", "AddEnd", N,  WARMUPS, STRUCTS, set, benchAddEnd<SinglyLinkedList<int>>);
-            run(   "SinglyLinkedList", "AddEnd", N,     RUNS, STRUCTS, set, benchAddEnd<SinglyLinkedList<int>>);
-            warmup("DoublyLinkedList", "AddEnd", N,  WARMUPS, STRUCTS, set, benchAddEnd<DoublyLinkedList<int>>);
-            run(   "DoublyLinkedList", "AddEnd", N,     RUNS, STRUCTS, set, benchAddEnd<DoublyLinkedList<int>>);
+            warmup(       "ArrayList", "AddEnd", N, WARMUPS, STRUCTS, set, benchAddEnd<ArrayList<int>>);
+            run(          "ArrayList", "AddEnd", N,    RUNS, STRUCTS, set, benchAddEnd<ArrayList<int>>);
+            warmup("SinglyLinkedHead", "AddEnd", N, WARMUPS, STRUCTS, set, benchAddEnd<SinglyLinkedHead<int>>);
+            run(   "SinglyLinkedHead", "AddEnd", N,    RUNS, STRUCTS, set, benchAddEnd<SinglyLinkedHead<int>>);
+            warmup("SinglyLinkedList", "AddEnd", N, WARMUPS, STRUCTS, set, benchAddEnd<SinglyLinkedList<int>>);
+            run(   "SinglyLinkedList", "AddEnd", N,    RUNS, STRUCTS, set, benchAddEnd<SinglyLinkedList<int>>);
+            warmup("DoublyLinkedList", "AddEnd", N, WARMUPS, STRUCTS, set, benchAddEnd<DoublyLinkedList<int>>);
+            run(   "DoublyLinkedList", "AddEnd", N,    RUNS, STRUCTS, set, benchAddEnd<DoublyLinkedList<int>>);
         }
     }
 
@@ -210,14 +210,14 @@ int main(int argc, char **argv) {
         for (size_t i = 0; i < EPOCHS; i++) {
             int* set = makeDataSet(N);
 
-            warmup(       "ArrayList", "Add", N,  WARMUPS, STRUCTS, set, benchAdd<ArrayList<int>>);
-            run(          "ArrayList", "Add", N,     RUNS, STRUCTS, set, benchAdd<ArrayList<int>>);
-            warmup("SinglyLinkedHead", "Add", N,  WARMUPS, STRUCTS, set, benchAdd<SinglyLinkedHead<int>>);
-            run(   "SinglyLinkedHead", "Add", N,     RUNS, STRUCTS, set, benchAdd<SinglyLinkedHead<int>>);
-            warmup("SinglyLinkedList", "Add", N,  WARMUPS, STRUCTS, set, benchAdd<SinglyLinkedList<int>>);
-            run(   "SinglyLinkedList", "Add", N,     RUNS, STRUCTS, set, benchAdd<SinglyLinkedList<int>>);
-            warmup("DoublyLinkedList", "Add", N,  WARMUPS, STRUCTS, set, benchAdd<DoublyLinkedList<int>>);
-            run(   "DoublyLinkedList", "Add", N,     RUNS, STRUCTS, set, benchAdd<DoublyLinkedList<int>>);
+            warmup(       "ArrayList", "Add", N, WARMUPS, STRUCTS, set, benchAdd<ArrayList<int>>);
+            run(          "ArrayList", "Add", N,    RUNS, STRUCTS, set, benchAdd<ArrayList<int>>);
+            warmup("SinglyLinkedHead", "Add", N, WARMUPS, STRUCTS, set, benchAdd<SinglyLinkedHead<int>>);
+            run(   "SinglyLinkedHead", "Add", N,    RUNS, STRUCTS, set, benchAdd<SinglyLinkedHead<int>>);
+            warmup("SinglyLinkedList", "Add", N, WARMUPS, STRUCTS, set, benchAdd<SinglyLinkedList<int>>);
+            run(   "SinglyLinkedList", "Add", N,    RUNS, STRUCTS, set, benchAdd<SinglyLinkedList<int>>);
+            warmup("DoublyLinkedList", "Add", N, WARMUPS, STRUCTS, set, benchAdd<DoublyLinkedList<int>>);
+            run(   "DoublyLinkedList", "Add", N,    RUNS, STRUCTS, set, benchAdd<DoublyLinkedList<int>>);
         }
     }
 
