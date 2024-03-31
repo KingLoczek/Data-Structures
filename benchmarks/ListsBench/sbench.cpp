@@ -35,7 +35,7 @@ TimeT end(const InstantT& start) {
 
 int* makeDataSet(size_t N, int seed) {
     std::mt19937 gen(seed);
-    std::uniform_int_distribution<> dist(0, 0xFFFFFFF);
+    std::uniform_int_distribution<> dist(0, 4096);
 
     int* items = new int[N];
     for (size_t i = 0; i < N; i++) {
@@ -47,7 +47,7 @@ int* makeDataSet(size_t N, int seed) {
 
 int* makeDataSet(size_t N) {
     std::mt19937 gen;
-    std::uniform_int_distribution<> dist(0, 0xFFFFFFF);
+    std::uniform_int_distribution<> dist(0, 4096);
 
     int* items = new int[N];
     for (size_t i = 0; i < N; i++) {
@@ -122,6 +122,73 @@ void benchAdd(int N, size_t m, int* data, TimeT& timer) {
     delete[] lists;
 }
 
+template<typename T>
+void benchRemoveEnd(int N, size_t m, int* data, TimeT& timer) {
+    T* lists = fillLists<T>(N, data, m);
+    auto begin = start();
+    for (size_t i = 0; i < m; i++) {
+        doNotOptimize(lists[i].remove());
+    }
+    timer += end(begin);
+
+    doNotOptimize(lists);
+    delete[] lists;
+}
+
+template<typename T>
+void benchRemoveBegin(int N, size_t m, int* data, TimeT& timer) {
+    T* lists = fillLists<T>(N, data, m);
+    auto begin = start();
+    for (size_t i = 0; i < m; i++) {
+        doNotOptimize(lists[i].pop());
+    }
+    timer += end(begin);
+
+    doNotOptimize(lists);
+    delete[] lists;
+}
+
+template<typename T>
+void benchRemove(int N, size_t m, int* data, TimeT& timer) {
+    T* lists = fillLists<T>(N, data, m);
+    auto begin = start();
+    for (size_t i = 0; i < m; i++) {
+        doNotOptimize(lists[i].remove(N / 2));
+    }
+    timer += end(begin);
+
+    doNotOptimize(lists);
+    delete[] lists;
+}
+
+template<typename T>
+void benchFind(int N, size_t m, int* data, int needle, TimeT& timer) {
+    T* lists = fillLists<T>(N, data, m);
+
+    auto begin = start();
+    for (size_t i = 0; i < m; i++) {
+        doNotOptimize(lists[i].contains(needle));
+    }
+    timer += end(begin);
+
+    doNotOptimize(lists);
+    delete[] lists;
+}
+
+template<typename T>
+void benchFailedFind(int N, size_t m, int* data, TimeT& timer) {
+    T* lists = fillLists<T>(N, data, m);
+
+    auto begin = start();
+    for (size_t i = 0; i < m; i++) {
+        doNotOptimize(lists[i].contains(8192));
+    }
+    timer += end(begin);
+
+    doNotOptimize(lists);
+    delete[] lists;
+}
+
 template<typename F>
 void run(const char* tag, const char* name, int N, size_t reps, size_t m, F bench) {
     TimeT acc{0};
@@ -143,6 +210,14 @@ void warmup(const char* tag, const char* name, size_t N, size_t reps, size_t m, 
 }
 
 template<typename F>
+void warmup(const char* tag, const char* name, size_t N, size_t reps, size_t m, int* data, int needle, F bench) {
+    TimeT acc{0};
+    for (size_t i = 0; i < reps; i++) {
+        bench(N, m, data, needle, acc);
+    }
+}
+
+template<typename F>
 void run(const char* tag, const char* name, size_t N, size_t reps, size_t m, int* data, F bench) {
     TimeT acc{0};
 
@@ -157,6 +232,24 @@ template<typename F>
 void runner(const char* tag, const char* name, const std::vector<int>& Ns, size_t reps, size_t m, F bench) {
     for (int n : Ns) {
         run(tag, name, n, reps, m, bench);
+    }
+}
+
+template<typename F>
+void run(const char* tag, const char* name, size_t N, size_t reps, size_t m, int* data, int needle, F bench) {
+    TimeT acc{0};
+
+    for (size_t i = 0; i < reps; i++) {
+        bench(N, m, data, needle, acc);
+    }
+
+    std::cout << tag << "," << name << "," << N << "," << m << "," << reps << "," << acc.count() << '\n';
+}
+
+template<typename F>
+void runner(const char* tag, const char* name, const std::vector<int>& Ns, size_t reps, int needle, size_t m, F bench) {
+    for (int n : Ns) {
+        run(tag, name, n, reps, m, needle, bench);
     }
 }
 
@@ -218,6 +311,84 @@ int main(int argc, char **argv) {
             run(   "SinglyLinkedList", "Add", N,    RUNS, STRUCTS, set, benchAdd<SinglyLinkedList<int>>);
             warmup("DoublyLinkedList", "Add", N, WARMUPS, STRUCTS, set, benchAdd<DoublyLinkedList<int>>);
             run(   "DoublyLinkedList", "Add", N,    RUNS, STRUCTS, set, benchAdd<DoublyLinkedList<int>>);
+        }
+    }
+
+    for (size_t N = A0; N <= A19; N += A0) {
+        for (size_t i = 0; i < EPOCHS; i++) {
+            int* set = makeDataSet(N);
+
+            warmup(       "ArrayList", "RemoveBegin", N, WARMUPS, STRUCTS, set, benchRemoveBegin<ArrayList<int>>);
+            run(          "ArrayList", "RemoveBegin", N,    RUNS, STRUCTS, set, benchRemoveBegin<ArrayList<int>>);
+            warmup("SinglyLinkedHead", "RemoveBegin", N, WARMUPS, STRUCTS, set, benchRemoveBegin<SinglyLinkedHead<int>>);
+            run(   "SinglyLinkedHead", "RemoveBegin", N,    RUNS, STRUCTS, set, benchRemoveBegin<SinglyLinkedHead<int>>);
+            warmup("SinglyLinkedList", "RemoveBegin", N, WARMUPS, STRUCTS, set, benchRemoveBegin<SinglyLinkedList<int>>);
+            run(   "SinglyLinkedList", "RemoveBegin", N,    RUNS, STRUCTS, set, benchRemoveBegin<SinglyLinkedList<int>>);
+            warmup("DoublyLinkedList", "RemoveBegin", N, WARMUPS, STRUCTS, set, benchRemoveBegin<DoublyLinkedList<int>>);
+            run(   "DoublyLinkedList", "RemoveBegin", N,    RUNS, STRUCTS, set, benchRemoveBegin<DoublyLinkedList<int>>);
+        }
+    }
+
+    for (size_t N = A0; N <= A19; N += A0) {
+        for (size_t i = 0; i < EPOCHS; i++) {
+            int* set = makeDataSet(N);
+
+            warmup(       "ArrayList", "RemoveEnd", N, WARMUPS, STRUCTS, set, benchRemoveEnd<ArrayList<int>>);
+            run(          "ArrayList", "RemoveEnd", N,    RUNS, STRUCTS, set, benchRemoveEnd<ArrayList<int>>);
+            warmup("SinglyLinkedHead", "RemoveEnd", N, WARMUPS, STRUCTS, set, benchRemoveEnd<SinglyLinkedHead<int>>);
+            run(   "SinglyLinkedHead", "RemoveEnd", N,    RUNS, STRUCTS, set, benchRemoveEnd<SinglyLinkedHead<int>>);
+            warmup("SinglyLinkedList", "RemoveEnd", N, WARMUPS, STRUCTS, set, benchRemoveEnd<SinglyLinkedList<int>>);
+            run(   "SinglyLinkedList", "RemoveEnd", N,    RUNS, STRUCTS, set, benchRemoveEnd<SinglyLinkedList<int>>);
+            warmup("DoublyLinkedList", "RemoveEnd", N, WARMUPS, STRUCTS, set, benchRemoveEnd<DoublyLinkedList<int>>);
+            run(   "DoublyLinkedList", "RemoveEnd", N,    RUNS, STRUCTS, set, benchRemoveEnd<DoublyLinkedList<int>>);
+        }
+    }
+
+    for (size_t N = A0; N <= A19; N += A0) {
+        for (size_t i = 0; i < EPOCHS; i++) {
+            int* set = makeDataSet(N);
+
+            warmup(       "ArrayList", "Remove", N, WARMUPS, STRUCTS, set, benchRemove<ArrayList<int>>);
+            run(          "ArrayList", "Remove", N,    RUNS, STRUCTS, set, benchRemove<ArrayList<int>>);
+            warmup("SinglyLinkedHead", "Remove", N, WARMUPS, STRUCTS, set, benchRemove<SinglyLinkedHead<int>>);
+            run(   "SinglyLinkedHead", "Remove", N,    RUNS, STRUCTS, set, benchRemove<SinglyLinkedHead<int>>);
+            warmup("SinglyLinkedList", "Remove", N, WARMUPS, STRUCTS, set, benchRemove<SinglyLinkedList<int>>);
+            run(   "SinglyLinkedList", "Remove", N,    RUNS, STRUCTS, set, benchRemove<SinglyLinkedList<int>>);
+            warmup("DoublyLinkedList", "Remove", N, WARMUPS, STRUCTS, set, benchRemove<DoublyLinkedList<int>>);
+            run(   "DoublyLinkedList", "Remove", N,    RUNS, STRUCTS, set, benchRemove<DoublyLinkedList<int>>);
+        }
+    }
+
+    for (size_t N = A0; N <= A19; N += A0) {
+        for (size_t i = 0; i < EPOCHS; i++) {
+            int* set = makeDataSet(N);
+            std::mt19937 gen;
+            std::uniform_int_distribution<> dist(0, 4096);
+            int needle = dist(gen);
+
+            warmup(       "ArrayList", "Find", N, WARMUPS, STRUCTS, set, needle, benchFind<ArrayList<int>>);
+            run(          "ArrayList", "Find", N,    RUNS, STRUCTS, set, needle, benchFind<ArrayList<int>>);
+            warmup("SinglyLinkedHead", "Find", N, WARMUPS, STRUCTS, set, needle, benchFind<SinglyLinkedHead<int>>);
+            run(   "SinglyLinkedHead", "Find", N,    RUNS, STRUCTS, set, needle, benchFind<SinglyLinkedHead<int>>);
+            warmup("SinglyLinkedList", "Find", N, WARMUPS, STRUCTS, set, needle, benchFind<SinglyLinkedList<int>>);
+            run(   "SinglyLinkedList", "Find", N,    RUNS, STRUCTS, set, needle, benchFind<SinglyLinkedList<int>>);
+            warmup("DoublyLinkedList", "Find", N, WARMUPS, STRUCTS, set, needle, benchFind<DoublyLinkedList<int>>);
+            run(   "DoublyLinkedList", "Find", N,    RUNS, STRUCTS, set, needle, benchFind<DoublyLinkedList<int>>);
+        }
+    }
+
+    for (size_t N = A0; N <= A19; N += A0) {
+        for (size_t i = 0; i < EPOCHS; i++) {
+            int* set = makeDataSet(N);
+
+            warmup(       "ArrayList", "FailedFind", N, WARMUPS, STRUCTS, set, benchFailedFind<ArrayList<int>>);
+            run(          "ArrayList", "FailedFind", N,    RUNS, STRUCTS, set, benchFailedFind<ArrayList<int>>);
+            warmup("SinglyLinkedHead", "FailedFind", N, WARMUPS, STRUCTS, set, benchFailedFind<SinglyLinkedHead<int>>);
+            run(   "SinglyLinkedHead", "FailedFind", N,    RUNS, STRUCTS, set, benchFailedFind<SinglyLinkedHead<int>>);
+            warmup("SinglyLinkedList", "FailedFind", N, WARMUPS, STRUCTS, set, benchFailedFind<SinglyLinkedList<int>>);
+            run(   "SinglyLinkedList", "FailedFind", N,    RUNS, STRUCTS, set, benchFailedFind<SinglyLinkedList<int>>);
+            warmup("DoublyLinkedList", "FailedFind", N, WARMUPS, STRUCTS, set, benchFailedFind<DoublyLinkedList<int>>);
+            run(   "DoublyLinkedList", "FailedFind", N,    RUNS, STRUCTS, set, benchFailedFind<DoublyLinkedList<int>>);
         }
     }
 
