@@ -32,14 +32,14 @@ int main() {
     std::cout << "Extracted max element: " << maxNode.data << " (" << maxNode.priority << ")\n";
 
     // Displaying the size of the heap
-    std::cout << "Heap size: " << binaryHeap.returnSize() << "\n";
+    std::cout << "Heap size: " << binaryHeap.size() << "\n";
 
     // Displaying the maximum element after modification
     std::cout << "Max element after modification: " << binaryHeap.findMax().data << " (" << binaryHeap.findMax().priority << ")\n";
 
     // Popping elements from the binary heap
     std::cout << "\nPopping elements from the binary heap:\n";
-    while (binaryHeap.returnSize() > 0) {
+    while (binaryHeap.size() > 0) {
         Node maxNode = binaryHeap.extractMax();
         std::cout << "Extracted Node: " << maxNode.data << " (Priority: " << maxNode.priority << ")\n";
     }

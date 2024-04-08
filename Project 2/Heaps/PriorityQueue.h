@@ -34,7 +34,7 @@ public:
     /**
     * Returns the size of the list
     */
-    virtual int returnSize() = 0;
+    virtual int size() = 0;
 };
 
 #endif

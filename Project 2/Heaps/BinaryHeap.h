@@ -1,5 +1,7 @@
 #ifndef BINARY_HEAP_H
 #define BINARY_HEAP_H
+#include <iostream>
+#include <cstdlib>
 #include <utility>
 #include <cassert>
 
@@ -10,7 +12,7 @@ class BinaryHeap:public PriorityQueue<T>{
 private:
     T* heapArray; // Array to store heap elements
     int capacity; // Maximum capacity of the heap
-    int size;     // Current size of the heap
+    int length;     // Current size of the heap
 
     void heapifyUp(int index){
         int parent = (index - 1) / 2;
@@ -28,10 +30,10 @@ private:
             int rightChild = 2*index+2;
             int largest = index;
 
-            if (leftChild < size && heapArray[leftChild].priority > heapArray[largest].priority){
+            if (leftChild < length && heapArray[leftChild].priority > heapArray[largest].priority){
                 largest = leftChild;
             }
-            if (rightChild < size && heapArray[rightChild].priority > heapArray[largest].priority){
+            if (rightChild < length && heapArray[rightChild].priority > heapArray[largest].priority){
                 largest = rightChild;
             }
             if(largest != index){
@@ -45,7 +47,7 @@ private:
 public:
     BinaryHeap(int capacity){
         this->capacity = capacity;
-        size = 0;
+        length = 0;
         heapArray = new T[capacity];
     };
 
@@ -54,34 +56,34 @@ public:
     };
 
     void insert(T element) override{
-        if(size == capacity){
+        if(length == capacity){
             capacity *=2;
             T* newArray = new T[capacity];
-            for (size_t i = 0; i < size; i++)
+            for (size_t i = 0; i < length; i++)
                 newArray[i] = heapArray[i];
             delete[] heapArray;
             heapArray = newArray;
         }
-        heapArray[size] = element; // Add data to the end of queue
-        heapifyUp(size); // Repair heap
-        size++; // Increase size of queue
+        heapArray[length] = element; // Add data to the end of queue
+        heapifyUp(length); // Repair heap
+        length++; // Increase size of queue
     };
 
     T extractMax() override{
-        if (size == 0) {
+        if (length == 0) {
             std::cout << "Heap is empty, cannot extract max.\n";
             return T();
         }
 
         T maxNode = heapArray[0];
-        heapArray[0] = heapArray[size - 1];
-        size--;
+        heapArray[0] = heapArray[length - 1];
+        length--;
         heapifyDown(0);
         return maxNode;
     };
 
     T findMax() override{
-        if (size == 0) {
+        if (length == 0) {
             std::cout << "Heap is empty, cannot find max.\n";
             return T();
         }
@@ -90,7 +92,7 @@ public:
     };
 
     void modifyKey(int data, int newPriority) override {
-        for (int i = 0; i < size; ++i) {
+        for (int i = 0; i < length; ++i) {
             if (heapArray[i].data == data) {
                 if (newPriority > heapArray[i].priority) {
                     heapArray[i].priority = newPriority;
@@ -105,8 +107,8 @@ public:
         std::cout << "Element not found in the heap.\n";
     };
 
-    int returnSize() override{
-        return size;
+    int size() override{
+        return length;
     };
 };
 
