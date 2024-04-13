@@ -1,7 +1,17 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+
 #include "BinaryHeap.h"
+
+struct Node {
+    int priority;
+    int data;
+
+    bool operator==(const Node& n) {
+        return data == n.data;
+    }
+};
 
 int main() {
     srand(time(NULL));
@@ -14,7 +24,7 @@ int main() {
         Node node;
         node.data = i;
         node.priority = rand() % 100; // Random priority in range [0, 99]
-        binaryHeap.insert(node);
+        binaryHeap.insert(node.priority, node);
         std::cout << "Added Node: " << node.data << " (Priority: " << node.priority << ")\n";
     }
 
@@ -22,7 +32,9 @@ int main() {
     std::cout << "Max element: " << binaryHeap.findMax().data << " (" << binaryHeap.findMax().priority << ")\n";
 
     // Modifying the priority of an element
-    binaryHeap.modifyKey(2, 12);
+    //binaryHeap.modifyKey(2, 12);
+    auto a = binaryHeap.find(Node{ 2, 0});
+    binaryHeap.modifyKey(a, 12);
 
     // Displaying the maximum element after modification
     std::cout << "Max element after modification: " << binaryHeap.findMax().data << " (" << binaryHeap.findMax().priority << ")\n";

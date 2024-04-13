@@ -3,20 +3,24 @@
 #include <iostream>
 #include <cstdlib>
 #include <utility>
-#include <cassert>
 
 #include "PriorityQueue.h"
 
-template<typename T>
-class BinaryHeap:public PriorityQueue<T>{
+template<typename T, typename P = int>
+class BinaryHeap : public PriorityQueue<T, P>{
 private:
-    T* heapArray; // Array to store heap elements
+    struct Node {
+        P priority;
+        T data;
+    };
+
+    Node* heapArray; // Array to store heap elements
     int capacity; // Maximum capacity of the heap
     int length;     // Current size of the heap
 
     void heapifyUp(int index){
         int parent = (index - 1) / 2;
-        while (index > 0 && heapArray[parent].priority < heapArray[index].priority)
+        while (index >= 0 && heapArray[parent].priority < heapArray[index].priority)
         {
             std::swap(heapArray[index], heapArray[parent]);
             index = parent;
@@ -45,26 +49,26 @@ private:
         }
     };
 public:
-    BinaryHeap(int capacity){
-        this->capacity = capacity;
-        length = 0;
-        heapArray = new T[capacity];
-    };
+    BinaryHeap() : BinaryHeap(16) {
+    }
+
+    BinaryHeap(int capacity) : capacity(capacity), length(0), heapArray(new Node[capacity]){
+    }
 
     ~BinaryHeap(){
         delete[] heapArray;
     };
 
-    void insert(T element) override{
+    void insert(P priority, T element) override{
         if(length == capacity){
             capacity *=2;
-            T* newArray = new T[capacity];
+            Node* newArray = new Node[capacity];
             for (size_t i = 0; i < length; i++)
                 newArray[i] = heapArray[i];
             delete[] heapArray;
             heapArray = newArray;
         }
-        heapArray[length] = element; // Add data to the end of queue
+        heapArray[length] = { priority, element }; // Add data to the end of queue
         heapifyUp(length); // Repair heap
         length++; // Increase size of queue
     };
@@ -75,11 +79,11 @@ public:
             return T();
         }
 
-        T maxNode = heapArray[0];
+        Node maxNode = heapArray[0];
         heapArray[0] = heapArray[length - 1];
         length--;
         heapifyDown(0);
-        return maxNode;
+        return maxNode.data;
     };
 
     T findMax() override{
@@ -88,10 +92,34 @@ public:
             return T();
         }
 
-        return heapArray[0];
+        return heapArray[0].data;
     };
 
-    void modifyKey(int data, int newPriority) override {
+    Node* find(T needle) {
+        for (int i = 0; i < length; ++i) {
+            if (heapArray[i].data == needle) {
+                return &heapArray[i];
+            }
+        }
+
+        return nullptr;
+    }
+
+    void modifyKey(Node* node, P newPriority) {
+        if (!node || node->priority == newPriority) 
+            return;
+
+        node->priority = newPriority;
+        size_t i = node - heapArray;
+
+        if (newPriority > node->priority) {
+            heapifyUp(i);
+        } else {
+            heapifyDown(i);
+        }
+    }
+
+    void modifyKey(T data, P newPriority) override {
         for (int i = 0; i < length; ++i) {
             if (heapArray[i].data == data) {
                 if (newPriority > heapArray[i].priority) {
@@ -107,7 +135,7 @@ public:
         std::cout << "Element not found in the heap.\n";
     };
 
-    int size() override{
+    size_t size() override {
         return length;
     };
 };

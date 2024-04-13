@@ -1,20 +1,16 @@
 #ifndef PRIORITY_QUEUE_H
 #define PRIORITY_QUEUE_H
 
-struct Node
-{
-    int data;
-    int priority;
-};
+#include <cstddef>
 
-template<typename T>
+template<typename T, typename P>
 class PriorityQueue
 {
 public:
     /**
     * Addition of element with priority 
     */
-    virtual void insert(T element) = 0;
+    virtual void insert(P priority, T element) = 0;
 
     /**
     * Remove and return the element with the highest priority
@@ -29,12 +25,12 @@ public:
     /**
     * Change the priority of the element. 
     */
-    virtual void modifyKey(int data, int newPriority) = 0;
+    virtual void modifyKey(T data, P newPriority) = 0;
 
     /**
     * Returns the size of the list
     */
-    virtual int size() = 0;
+    virtual size_t size() = 0;
 };
 
 #endif
