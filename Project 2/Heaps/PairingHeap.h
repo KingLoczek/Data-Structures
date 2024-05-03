@@ -53,22 +53,38 @@ private:
         // Two pass: 
         // 1. left -> right meld pairs
         // 2. right -> left meld pairs
-        std::deque<Node*> queue;
+        // left to right pairwise merging pass
+        Node* tail = nullptr;
+        Node* iter = start;
+        while (iter) {
+            Node* left = iter;
 
-        Node* node = start;
-        while (node) {
-            queue.push_back(node);
-            node = node->nextSibling;
-        }
+            if (left->nextSibling) {
+                Node* right = left->nextSibling;
+                iter = right->nextSibling; 
 
-        while(queue.size() >= 2) {
-            Node* left = queue.front();
-            queue.pop_front();
-            Node* right = queue.front();
-            queue.pop_front();
-            queue.push_back(meld(left, right));
+                left->nextSibling = nullptr;
+                right->nextSibling = nullptr;
+
+                Node* melded = meld(left, right);
+                melded->nextSibling = tail;
+                tail = melded;
+            } else {
+                left->nextSibling = tail;
+                tail = left;
+                iter = nullptr;
+            }
         }
-        return queue.front();
+        // right to left incremental merging pass
+        Node* root = nullptr;
+        iter = tail;
+        while (iter) {
+            Node* next = iter;
+            iter = next->nextSibling;
+            next->nextSibling = nullptr;
+            root = meld(root, next);
+        }
+        return root;
     }
     Node* findParent(Node* start, Node* child){
         if(!start || !child) return nullptr;
