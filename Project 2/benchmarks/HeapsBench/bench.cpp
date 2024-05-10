@@ -1,5 +1,6 @@
 #include "BinaryHeap.h"
 #include "FibonacciHeap.h"
+#include "PairingHeap.h"
 
 #include <chrono>
 #include <ostream>
@@ -29,7 +30,9 @@ struct Dummy {
     }
 };
 
-const size_t MAX_SIZE = 10000000;
+//const size_t MAX_SIZE = 5000000;
+//const size_t MAX_SIZE = 10485760;
+const size_t MAX_SIZE = 32768000;
 
 #define BENCH_IMPL(op) do { \
     auto begin = std::chrono::high_resolution_clock::now(); \
@@ -38,6 +41,22 @@ const size_t MAX_SIZE = 10000000;
     auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin); \
     return duration.count(); \
 } while(0)
+
+#define BENCH_N_IMPL(op, iters) do { \
+    auto begin = std::chrono::high_resolution_clock::now(); \
+    for (size_t i = 0; i < iters; i++) { op; } \
+    auto end = std::chrono::high_resolution_clock::now(); \
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin); \
+    return duration.count(); \
+} while(0)
+
+template<typename H>
+struct BenchInsertN {
+    long operator()(H* heap, size_t size) {
+        int benchP = (MAX_SIZE * 10) + 1;
+        BENCH_N_IMPL(heap[i].insert(benchP, { 8086 }, true), size);
+    }
+};
 
 template<typename H>
 struct BenchInsert {
@@ -68,17 +87,10 @@ struct BenchIncreaseKey {
     long operator()(H* heap) {
         auto node = heap->find(Dummy { 8086 });
         assert(node && "bench is brokey");
-        BENCH_IMPL(heap->modifyKey(node, MAX_SIZE * 10 + 1));
+        BENCH_IMPL(heap->modifyKey(node, (MAX_SIZE * 10) + 10));
     }
 };
 
-#define BENCH_N_IMPL(op, iters) do { \
-    auto begin = std::chrono::high_resolution_clock::now(); \
-    for (size_t i = 0; i < iters; i++) { op; } \
-    auto end = std::chrono::high_resolution_clock::now(); \
-    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin); \
-    return duration.count(); \
-} while(0)
 
 template<typename H>
 struct BenchFindMax {
@@ -95,7 +107,7 @@ struct BenchReturnSize {
 };
 
 template<typename H, template<typename> typename A>
-long bench(size_t N, int seed) {
+long bench(size_t N, int seed, int p = -1) {
     A<H> action;
     H heap;// = new BinaryHeap<Dummy>;
 
@@ -108,7 +120,8 @@ long bench(size_t N, int seed) {
         int v = vDist(gen);
         heap.insert( p, { v } );
     }
-    int p = dist(gen);
+    if (p < 0) p = dist(gen);
+    //int p = dist(gen);
     heap.insert(p, { 8086 });
 
     assert(heap.size() == N);
@@ -141,36 +154,43 @@ long benchMulti(size_t N, int seed, size_t size, size_t batches) {
 }
 
 template<template<typename> typename T>
-void run(size_t N, size_t runs, const char* method) {
-    long times[2] = { 0L, 0L };
+void run(size_t N, size_t runs, const char* method, int pLast = -1) {
+    long times[3] = { 0L, 0L, 0L };
 
     for (size_t i = 0; i < runs; i++) {
         std::mt19937 gen;
         std::uniform_int_distribution<> dist;
 
         int seed = dist(gen);
-        times[0] += bench<BinaryHeap<Dummy>, T>(N, seed);
-        times[1] += bench<FibonacciHeap<Dummy>, T>(N, seed);
+        times[0] += bench<BinaryHeap<Dummy>, T>(N, seed, pLast);
+        times[1] += bench<FibonacciHeap<Dummy>, T>(N, seed, pLast);
+        times[2] += bench<PairingHeap<Dummy>, T>(N, seed, pLast);
     }
 
-    std::cout << "BinHeap," << method << "," << N << ",1," << runs << "," << times[0] << '\n';
-    std::cout << "FibHeap," << method << "," << N << ",1," << runs << "," << times[1] << '\n';
+    std::cout << "BinHeap,"  << method << "," << N << ",1," << runs << "," << times[0] << '\n';
+    std::cout << "FibHeap,"  << method << "," << N << ",1," << runs << "," << times[1] << '\n';
+    std::cout << "PairHeap," << method << "," << N << ",1," << runs << "," << times[2] << '\n';
     std::cout << std::flush;
 }
 
 template<template<typename> typename T>
 void runMulti(size_t N, const char* method) {
-    long times[2] = { 0L, 0L };
+    long times[3] = { 0L, 0L, 0L };
 
     std::mt19937 gen;
     std::uniform_int_distribution<> dist;
 
-    int seed = dist(gen);
-    times[0] += benchMulti<BinaryHeap<Dummy>, T>(N, seed, 20, 5);
-    times[1] += benchMulti<FibonacciHeap<Dummy>, T>(N, seed, 20, 5);
+    size_t size = 12;
+    size_t batches = 5;
 
-    std::cout << "BinHeap," << method << "," << N << ",100,5," << times[0] << '\n';
-    std::cout << "FibHeap," << method << "," << N << ",100,5," << times[1] << '\n';
+    int seed = dist(gen);
+    times[0] += benchMulti<BinaryHeap<Dummy>, T>(N, seed, size, batches);
+    times[1] += benchMulti<FibonacciHeap<Dummy>, T>(N, seed, size, batches);
+    times[2] += benchMulti<PairingHeap<Dummy>, T>(N, seed, size, batches);
+
+    std::cout << "BinHeap,"  << method << "," << N << "," << size << "," << batches << "," << times[0] << '\n';
+    std::cout << "FibHeap,"  << method << "," << N << "," << size << "," << batches << "," << times[1] << '\n';
+    std::cout << "PairHeap," << method << "," << N << "," << size << "," << batches << "," << times[2] << '\n';
     std::cout << std::flush;
 }
 
@@ -179,7 +199,11 @@ int main() {
     std::vector<size_t> Ns;
     std::vector<size_t> Ms;
 
-    for (size_t i = 100000; i <= MAX_SIZE; i += 100000) {
+    //for (size_t i = 50000; i <= MAX_SIZE; i += 50000) {
+    //    Ns.push_back(i);
+    //}
+
+    for (size_t i = 1000; i <= MAX_SIZE; i *= 2) {
         Ns.push_back(i);
     }
 
@@ -192,6 +216,7 @@ int main() {
     // benchInsert
     if (enabled[0])
         for (size_t N : Ns) {
+            //runMulti<BenchInsert>(N, "Insert");
             run<BenchInsert>(N, 5, "Insert");
         }
 
@@ -210,12 +235,12 @@ int main() {
     // benchIncreaseKey
     if (enabled[3])
         for (size_t N : Ns) {
-            run<BenchIncreaseKey>(N, 1, "Increase");
+            run<BenchIncreaseKey>(N, 8, "Increase", 0);
         }
     // benchDecreaseKey
     if (enabled[4])
         for (size_t N : Ns) {
-            run<BenchDecreaseKey>(N, 1, "Decrease");
+            run<BenchDecreaseKey>(N, 8, "Decrease", (MAX_SIZE * 10) + 1);
         }
     // benchReturnSize
     if (enabled[5])

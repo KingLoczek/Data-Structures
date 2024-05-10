@@ -2,11 +2,12 @@
 #define PAIRING_HEAP_H
 
 #include "PriorityQueue.h"
+#include "arraylist.h"
 #include <cstdio>
 #include <deque>
 #include <stdexcept>
 
-template<typename T, typename P>
+template<typename T, typename P = int>
 class PairingHeap : public PriorityQueue<T,P>{
 private:
     struct Node
@@ -126,6 +127,22 @@ private:
 public:
     PairingHeap() : root(nullptr), lenght(0) {}
 
+    ~PairingHeap() {
+        ArrayList<Node*> queue;
+        queue.add(root);
+
+        while (queue.size() > 0) {
+            Node* n = queue.remove();
+
+            if (n->nextSibling)
+                queue.add(n->nextSibling);
+            if (n->leftChild)
+                queue.add(n->leftChild);
+
+            delete n;
+        }
+    }
+
     void insert(P priority, T value) override{
         Node* newNode = new Node(priority, value);
         root = meld(root, newNode);
@@ -150,8 +167,16 @@ public:
         return root->value;
     }
 
-    void modifyKey(T value, P newPriority) override{
+    Node* find(T value) {
+        return find(root, value);
+    }
+
+    void modifyKey(T value, P newPriority) override {
         Node* target = find(root, value);
+        modifyKey(target, newPriority);
+    }
+
+    void modifyKey(Node* target, P newPriority) {
         if(!target) throw std::logic_error("Element not found");
 
         target->priority = newPriority;
