@@ -1,3 +1,4 @@
+#include "CuckooHashTable.hpp"
 #include "HashTable.hpp"
 #include "Hasher.hpp"
 #include "ListClosedAddressingHashTable.hpp"
@@ -44,7 +45,7 @@ void stressTest(HashTable<int, int>* table) {
 }
 
 int main() {
-    std::cout << "HashTable implementation:\n   0. Closed Addressing with List\n   1. Open Addressing\n> ";
+    std::cout << "HashTable implementation:\n   0. Closed Addressing with List\n   1. Open Addressing\n   2. Cuckoo hashing\n > ";
     size_t impl;
     std::cin >> impl;
 
@@ -55,6 +56,9 @@ int main() {
             break;
         case 1:
             table = new OpenAddressingHashTable<int, int>(4);
+            break;
+        case 2:
+            table = new CuckooHashTable<int, int>(4);
             break;
     }
 
